@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        #spread-container {
+            border: 1px solid black;
+            width: 800px;
+            height: 600px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="spread-container">
+        <canvas id="spread" width="800" height="600"></canvas>
+    </div>
+    <script>
+        //构建模型
+        function buildModel() {
+            let model = {
+                cellStyle: {
+                    width: 100,
+                    height: 30,
+                    font: '14px 微软雅黑'
+                }
+            };
+            model.rows = [];
+            let rowLen = 200;
+            let colLen = 30;
+            for (let i = 0; i < rowLen; i++) {
+                let row = []
+                for (let j = 0; j < colLen; j++) {
+                    row.push(`${i}行${j}列`);
+                }
+                model.rows.push(row)
+            }
+            return model;
+        }
+
+        //绘制表格
+        function paintSheet(model) {
+            let viewPortX = 0;
+            let viewPortY = 0;
+            let theCanvas = {
+                width: 800,
+                height: 600
+            }
+            let c = document.getElementById('spread')
+            let ctx = c.getContext('2d');
+            let fontSize = Number(/(\d+)px/.exec(model.cellStyle.font)[1]);
+            ctx.font = model.cellStyle.font;
+
+            //获取显示表格
+            let getVisiableRows = function () {
+                let startRowIndex = Math.round(viewPortY / 30);
+                let endRowIndex = Math.round((viewPortY + theCanvas.width) / 30);
+                let startColumnIndex = Math.round(viewPortX / 30);
+                let endColumnIndex = Math.round((viewPortX + theCanvas.height) / 30);
+                let visiableRows = model.rows.slice(startRowIndex, endRowIndex);
+                visiableRows = visiableRows.map((row) => {
+                    return row.slice(startColumnIndex, endColumnIndex);
+                });
+                return visiableRows;
+            }
+            let paintSheet_ = function (model) {
+                let startY = 0;
+                getVisiableRows().forEach((row, rowIndex) => {
+                    let startX = 0;
+                    row.forEach((column, columIndex) => {
+                        let fX = startX + fontSize;
+                        let fY = startY + fontSize;
+                        // if (fX > viewPortX && fX < viewPortX + theCanvas.width) {
+                        //     if (fY > viewPortY && fY < viewPortY + theCanvas.height) {
+                        let paramters = [column, fX, fY];
+                        //console.log(paramters)
+                        ctx.fillText.apply(ctx, paramters);
+                        startX += model.cellStyle.width;
+                        //    }
+                        //}
+                    })
+                    startY += model.cellStyle.height;
+                });
+            }
+            paintSheet_(model);
+
+            document.getElementById('spread-container').addEventListener('mousewheel', (evt) => {
+
+                viewPortX += evt.deltaX;
+                if (viewPortX < 0) {
+                    viewPortX = 0;
+                }
+                viewPortY += evt.deltaY;
+                if (viewPortY < 0) {
+                    viewPortY = 0;
+                }
+
+                console.log(viewPortX);
+                console.log(viewPortY);
+                ctx.clearRect(0, 0, theCanvas.width, theCanvas.height);
+                paintSheet_(model);
+            })
+
+
+        }
+
+        paintSheet(buildModel());
+
+
+
+    </script>
+</body>
+
+</html>
